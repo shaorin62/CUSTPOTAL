@@ -1,0 +1,34 @@
+<!--#include virtual="/inc/getdbcon.asp" -->
+<!--#include virtual="/inc/func.asp" -->
+<%
+	dim midx : midx = request("midx")
+	dim title : title = request("txtTitle")
+	dim file : file = request("chkfile")
+	dim comment : comment = request("chkcomment")
+	dim email : email = request("chkemail")
+
+	if file = "" then file = 0 else file = 1
+	if comment = "" then comment = 0 else comment = 1
+	if email = "" then email = 0 else email = 1
+
+	dim objrs, sql 
+	sql  = "select midx, title, custcode, lvl, isfile, iscomment, isemail, isuse, cuser, cdate, uuser, udate, ref, highmenu from dbo.wb_menu_mst where midx = " & midx 
+	call set_recordset(objrs, sql)
+
+	objrs.fields("title").value = title
+	objrs.fields("isfile").value = file
+	objrs.fields("iscomment").value = comment
+	objrs.fields("isemail").value = email
+	objrs.fields("uuser").value = request.cookies("userid")
+	objrs.fields("udate").value = date
+
+	objrs.update
+	objrs.close
+	Set objrs = Nothing
+%>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+	window.opener.location.reload();
+	location.href="pop_menu_view.asp?midx=<%=midx%>";
+//-->
+</SCRIPT>

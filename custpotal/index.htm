@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>▒▒ SK M&C | Media Management System ▒▒ </title>
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" oncontextmenu='return false' >
+<form name="form1" method="post" action="">
+  <table width="557" height="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td valign="middle"><table width="557" height="356" border="0" align="center" cellpadding="0" cellspacing="0" background="images/index_bg.jpg" id="Table_01">
+          <tr>
+            <td width="235" height="170">&nbsp;</td>
+            <td width="322">&nbsp;</td>
+          </tr>
+          <tr>
+            <td height="186">&nbsp;</td>
+            <td align="left" valign="top"><table width="322" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td width="157" height="35" valign="top" style="padding-top:3px;"><input name="txtuserid" type="text" id="txtuserid" maxlength="12" tabindex="1" style="ime-mode:inactive" value="skmnc"></td>
+                <td width="165" rowspan="2"><img src="images/btn_login.jpg" width="105" height="64"  tabindex="3" class="styleLink" onclick="checkForLogIn()"></td>
+              </tr>
+              <tr>
+                <td valign="top"><input name="txtpassword" type="password" id="txtpassword" maxlength="12"  tabindex="2" style="ime-mode:inactive" value="12345678a"></td>
+                </tr>
+            </table>
+              <br>
+            </td>
+          </tr>
+        </table>
+         <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+		</td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>
+<script language="JavaScript">
+<!--
+	window.onload = function init() {
+		document.forms[0].txtuserid.focus();
+	}
+
+	document.onkeydown = function checkForKey() {
+		if (event.keyCode == 13) checkForLogIn();
+
+	}
+
+	function checkForLogIn() {
+		var frm = document.forms[0];
+		var str = "abcdefghijklmnopqrstuvwxyzABCDEDGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+		for (var i=0 ; i<frm.txtuserid.value.length ; i++) {
+			var checkstr = frm.txtuserid.value.substr(i,1);
+			if (str.indexOf(checkstr) == -1) {alert("허용되지 않는 문자열이 포함되어 있습니다."); return false;}
+			var injection = frm.txtuserid.value.substr(i,2);
+			if (injection == "--") {alert("허용되지 않는 문자열이 포함되어 있습니다."); return false;}
+
+		}
+		for (var i=0 ; i<frm.txtpassword.value.length ; i++) {
+			var checkstr = frm.txtpassword.value.substr(i,1);
+			if (str.indexOf(checkstr) == -1) {alert("허용되지 않는 문자열이 포함되어 있습니다."); return false;}
+			var injection = frm.txtpassword.value.substr(i,2);
+			if (injection == "--") {alert("허용되지 않는 문자열이 포함되어 있습니다."); return false;}
+		}
+
+		frm.method = "POST";
+		frm.action = "log_proc.asp";
+		frm.submit();
+	}
+//-->
+</script>

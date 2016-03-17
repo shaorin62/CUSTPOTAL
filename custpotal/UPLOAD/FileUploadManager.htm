@@ -1,0 +1,80 @@
+<HTML>
+
+             <HEAD>
+
+                           <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ks_c_5601-1987">
+
+                           
+
+                           <TITLE>가장 간단한 POST 방식의 예제.</TITLE>
+
+                           
+
+                           <SCRIPT FOR="FileUploadManager" Event="OnError(nCode, sMsg, sDetailMsg)" LANGUAGE="javascript">
+
+                                                     OnFileManagerError(nCode, sMsg, sDetailMsg);
+
+                           </SCRIPT>
+
+                           <SCRIPT LANGUAGE="JavaScript">
+
+                                        // sMsg는 간략하게 요약된 에러 메시지입니다.
+
+                                        // sDetailMsg는 보다 자세한 정보가 포함 된 에러 메시지입니다.
+
+                                        // sDetailMsg는 에러 메시지에 따라 공백인 경우도 있습니다.
+
+                                        // 반드시 위와 같이 선언을 해줘야 합니다.
+
+                                        // 이 에러 처리 방식은 DEXTUploadX의 모든 컨트롤이 동일합니다.
+
+                                        function OnFileManagerError(nCode, sMsg, sDetailMsg)
+
+                                        {
+
+                                                     alert(nCode);
+
+                                                     alert(sMsg);
+
+                                                     alert(sDetailMsg);
+
+                                        }
+
+                           </SCRIPT>
+
+             
+
+                           <SCRIPT LANGUAGE="VBS" for="FileUploadManager" event="OnTransfer_Click()"> 
+
+                                        '파일 업로드 매니저의 전송하기 버튼을 누르면 위의 'OnTransfer_Click' 이벤트가 발생합니다.
+
+                                        ' 여기에서 아래와 같이 파일 업로드 모니터 화면을 열면 됩니다.
+
+                                        winstyle="height=335,width=445, status=no,toolbar=no,menubar=no,location=no"
+
+                                        window.open "./FileUploadMonitor.htm",null,winstyle
+
+                           </SCRIPT>
+
+             </HEAD>
+
+ 
+
+             <BODY>
+                           <OBJECT id="FileUploadManager" codeBase="http://mms.raed.co.kr/DEXTUploadX/DEXTUploadX.cab#version=3,0,3,0"
+
+                                        height="200" width="450" classid="CLSID:DF75BAFF-7DD5-4B83-AF5E-692067C90316" VIEWASTEXT>
+
+                           </OBJECT>
+
+                           <P>가장 간단한 POST 방식의 업로드입니다.<BR>
+
+                           위에 보이는 컨트롤을 "파일 업로드 매니저(FileUploadManager)"라고 합니다.<BR>
+
+                           드래그&드랍을 지원합니다. 파일이나 폴더를 끌어서 놓아보세요<BR>
+
+                           </P>
+
+             </BODY>
+
+</HTML>

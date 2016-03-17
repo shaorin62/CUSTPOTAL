@@ -1,0 +1,136 @@
+<!--#include virtual="/inc/getdbcon.asp" -->
+<!--#include virtual="/inc/func.asp" -->
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<style type="text/css">
+	body {
+		background-color:transparent;
+		font-size:12px;
+	}
+	.trhd {
+		font-size:12px;
+		height: 30px;
+		color: #F9F1EA;
+		background-color:#9A9A9A;
+		font-weight: bolder;
+	}
+
+	.trbd {
+		font-size:12px;
+		height: 30px;
+		color: #000000;
+	}
+</style>
+<%
+	dim yearmon, yearmon2
+
+	yearmon = cstr(request("yearmon"))
+	yearmon2 = cstr(request("yearmon2"))
+
+
+	Dim custcode : custcode = request("custcode")
+	custcode = request.cookies("custcode")
+	Dim custcode2 : custcode2 = request("custcode2")
+
+	Response.CacheControl  = "public"
+	Response.ContentType = "application/vnd.ms-excel"
+	Response.AddHeader  "Content-Disposition" , "attachment; filename=월별 매체 집행내역.xls"
+
+	dim objrs, sql
+
+
+	' 이하로 붙여 넣기
+	if custcode = custcode2 or custcode2 = "" then 	custcode2 = null
+
+	if request.cookies("class") = "D" then
+		custcode2 = request.cookies("custcode2")
+	end if
+
+
+	sql = "select m.yearmon,c.custname,sum(case when m.medflag = '01' then isnull(amt,0) else 0 end) as 'M01' , sum(case when m.medflag = '02' or m.medflag = '03' then isnull(amt,0) else 0 end) as 'M02' , sum(case when m.medflag = 'A2' then isnull(amt,0) else 0 end) as 'M03' , sum(case when m.medflag = '10' or m.medflag = '20' then isnull(amt,0) else 0 end) as 'M04', sum(case when m.medflag = 'B'  then isnull(amt,0) else 0 end) as 'M05', sum(case when m.medflag = 'C' then isnull(amt,0) else 0 end) as 'M06', sum(case when m.medflag = 'O' then isnull(amt,0) else 0 end) as 'M07', sum(case when m.medflag = 'D' then isnull(amt,0) else 0 end) as 'M08' , sum(isnull(amt,0)) as 'TOTAL' from dbo.md_report_mst  m inner join dbo.sc_cust_temp c on m.clientsubcode = c.custcode  where  (m.yearmon  between '"&yearmon&"' and '"&yearmon2&"') and m.clientcode = '" & custcode & "' and c.custcode like '" & custcode2 &"%'  group by  m.yearmon, c.custname with rollup "
+
+	'response.write sql
+	call get_recordset(objrs, sql)
+
+	Dim cyearmon, custname2, m01, m02, m03, m04, m05, m06, m07, m08, total, cnt, prev,  mt01, mt02, mt03, mt04, mt05, mt06, mt07, mt08, subtotal
+	If Not objrs.eof Then
+		Set cyearmon = objrs("yearmon")
+		Set custname2 = objrs("custname")
+		Set m01 = objrs("m01")
+		Set m02 = objrs("m02")
+		Set m03 = objrs("m03")
+		Set m04 = objrs("m04")
+		Set m05 = objrs("m05")
+		Set m06 = objrs("m06")
+		Set m07 = objrs("m07")
+		Set m08 = objrs("m08")
+		Set total = objrs("total")
+	End if
+%>
+				  <table width="1014" border="0" cellspacing="1" cellpadding="0" bgcolor="#CCCCCC" >
+                      <tr class="trhd">
+                        <td width="90" align="center">년월</td>
+						<% if isnull(custcode2) then %>
+                        <td width="124" align="center">구 분</td>
+						<% end if%>
+                        <td width="90" align="center" >TV</td>
+                        <td width="90" align="center">RD</td>
+                        <td width="90" align="center">CATV</td>
+                        <td width="90" align="center">지상파 DMB</td>
+                        <td width="90" align="center">신문</td>
+                        <td width="90" align="center">잡지</td>
+                        <td width="90" align="center">인터넷</td>
+                        <td width="90" align="center">옥외</td>
+                        <td width="90" align="center">계</td>
+                      </tr>
+				<!--  -->
+				<%
+					cnt = 0
+					do until objrs.eof
+					if not (not isnull(cyearmon) and  isnull(custname2) and cnt = 0) then
+				%>
+				<% if isnull(custcode2) then %>
+					<% if isnull(cyearmon) and isnull(custname2) and cnt=1 then%>
+					  <tr  class="trbd" bgcolor="#FFC1C1" >
+							<td  align="center" colspan="2">총합 </td>
+					<% elseif not isnull(cyearmon) and isnull(custname2) and cnt = 1 then %>
+					  <tr  class="trbd" bgcolor="#FFFFC1" >
+							<td  align="center" colspan="2"><%response.write left(cyearmon,4) & "-" & right(cyearmon,2)%> 소계 </td>
+					<% else %>
+					  <tr  class="trbd" bgcolor="#FFFFFF" >
+							<td  align="center" ><%if prev = cyearmon then Response.write "" else response.write left(cyearmon,4) & "-" & right(cyearmon,2)%> </td>
+							<td  align="left" style="padding-left:10px;"><%=custname2%></td>
+					<% end if %>
+				<% else '구분 컬럼은 사업부 선택일 때는 보이지 않도록 해야 한다. %>
+					<% if isnull(cyearmon) and isnull(custname2) and cnt=1 then%>
+					  <tr  class="trbd" bgcolor="#FFC1C1" >
+							<td  align="center" >총합 </td>
+					<% elseif not isnull(cyearmon) and isnull(custname2) and cnt = 1 then %>
+					  <tr  class="trbd" bgcolor="#FFFFC1" >
+							<td  align="center" ><%response.write left(cyearmon,4) & "-" & right(cyearmon,2)%> 소계 </td>
+					<% else %>
+					  <tr  class="trbd" bgcolor="#FFFFFF" >
+							<td  align="center" ><%if prev = cyearmon then Response.write "" else response.write left(cyearmon,4) & "-" & right(cyearmon,2)%> </td>
+					<% end if %>
+				<% end if %>
+
+                        <td  align="right" ><%If m01 = "0" Then response.write "-" Else response.write FormatNumber(m01,0)%></td>
+                        <td  align="right" ><%If m02 = "0" Then response.write "-" Else response.write FormatNumber(m02,0)%></td>
+                        <td  align="right" ><%If m03 = "0" Then response.write "-" Else response.write FormatNumber(m03,0)%></td>
+                        <td  align="right" ><%If m04 = "0" Then response.write "-" Else response.write FormatNumber(m04,0)%></td>
+                        <td  align="right" ><%If m05 = "0" Then response.write "-" Else response.write FormatNumber(m05,0)%></td>
+                        <td  align="right" ><%If m06 = "0" Then response.write "-" Else response.write FormatNumber(m06,0)%></td>
+                        <td  align="right" ><%If m07 = "0" Then response.write "-" Else response.write FormatNumber(m07,0)%></td>
+                        <td  align="right" ><%If m08 = "0" Then response.write "-" Else response.write FormatNumber(m08,0)%></td>
+                        <td  align="right" ><%If total = "0" Then response.write "-" Else response.write FormatNumber(total,0)%></td>
+                  </tr>
+				<%
+					end if
+					if prev = cyearmon then cnt = 1 else cnt = 0
+					prev = cyearmon
+
+					objrs.movenext
+				loop
+				objrs.close
+				set objrs = nothing
+				%>
+              </table>

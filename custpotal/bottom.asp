@@ -1,0 +1,1 @@
+<img src="/images/bottom_bg.gif" width="1240" height="66" border="0" alt="">

@@ -1,0 +1,41 @@
+
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ks_c_5601-1987">
+
+<TITLE>DEXTUploadX 업로드</TITLE>
+
+<SCRIPT FOR="FileUploadMonitor" Event="OnError(nCode, sMsg, sDetailMsg)" LANGUAGE="javascript">
+OnFileMonitorError(nCode, sMsg, sDetailMsg);
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+function OnFileMonitorError(nCode, sMsg, sDetailMsg)
+{
+alert(nCode);
+alert(sMsg);
+alert(sDetailMsg);
+}
+</SCRIPT>
+
+<SCRIPT LANGUAGE="VBS">
+sub OnLoading()
+' Post 방식일 경우 아래와 같이 UploadURL 속성에 Post Script 파일을 명시해야 합니다.
+' 표준 포트 외의 다른 포트를 사용하시려면
+' http://Localhost:8080/DEXTUploadX/Upload/PostScript.asp
+' 과 같이 일반적인 주소 지정 방법과 동일하게 사용하시면 됩니다.
+document.all("FileUploadMonitor").UploadURL = "http://mms.raed.co.kr/DEXTUploadX/Upload/PostScript.asp"
+' 이 페이지의 부모 페이지에 있는 파일 매니저 컨트롤의 모든 파일 및 폼 아이템을 파일 모니터 컨트롤에 복사합니다.
+document.all("FileUploadMonitor").Items = opener.document.all("FileUploadManager").Items
+' 파일 매니저의 몇 가지 속성들(DefaultPath, Filter 등등)의 값을 파일 모니터에 복사합니다.
+document.all("FileUploadMonitor").Properties = opener.document.all("FileUploadManager").Properties
+end sub
+</SCRIPT>
+</HEAD>
+
+<BODY onload="OnLoading()" bottomMargin=0 leftMargin=0 topMargin=0 rightMargin=0>
+<OBJECT id=FileUploadMonitor height=355 width=445
+classid=CLSID:96A93E40-E5F8-497A-B029-8D8156DE09C5
+CodeBase="http://Localhost/DEXTUploadX/DEXTUploadX.cab#version=2,4,0,0" VIEWASTEXT>
+</OBJECT>
+</BODY>
+</HTML>

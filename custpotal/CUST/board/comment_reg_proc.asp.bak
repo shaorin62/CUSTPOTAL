@@ -1,0 +1,51 @@
+<!--#Include virtual="/inc/getdbcon.asp"-->
+<!--#Include virtual="/inc/func.asp"-->
+<!--#include virtual="/inc/secure.inc.asp"-->	<% '보안관련라이브러리 %>
+<!--#include virtual="/inc/head.asp"-->			<% '초기 설정 페이지(에러 메세지 미출력) %>
+
+<%
+	dim uploadform : set uploadform = server.createobject("DEXT.FileUpload")
+	uploadform.defaultPath ="C:\pds\file"
+
+
+	dim ridx : ridx = uploadform("ridx")
+	dim comment : comment = uploadform("txtcomment")
+	dim attachfile : attachfile = uploadform("txtfile")
+	dim userid : userid = uploadform("userid")
+	dim filename
+	Dim atag
+
+	if attachfile = "" then attachfile = null
+
+	dim objrs, sql
+	sql = "select cidx, ridx, comment, attachfile, cuser, cdate from dbo.wb_report_comment where ridx ="&ridx
+	call set_recordset(objrs, sql)
+
+	objrs.addnew
+	objrs.fields("ridx").value = ridx
+	objrs.fields("comment").value = clearXSS( comment, atag)
+	if uploadform("txtfile") = "" then
+		objrs.fields("attachfile").value = null
+	else
+		attachFile ="C:\pds\file" & "\"& objrs("attachfile")
+		dim fso : set fso = server.createobject("scripting.filesystemobject")
+		if fso.fileexists(attachFile) then
+			fso.deletefile(attachFile)
+		end if
+		filename = uploadform("txtfile").Save(, false)
+		objrs.fields("attachfile").value = replace(filename, uploadform.defaultPath&"\", "")
+	end if
+	objrs.fields("cuser").value = request.cookies("userid")
+	objrs.fields("cdate").value = date
+	objrs.update
+
+	objrs.close
+	Set objrs = Nothing
+
+%>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+	window.opener.location.reload();
+	this.close();
+//-->
+</SCRIPT>

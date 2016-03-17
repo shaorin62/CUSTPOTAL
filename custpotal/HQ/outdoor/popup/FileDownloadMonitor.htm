@@ -1,0 +1,48 @@
+<HTML>
+	<HEAD>
+	        <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=ks_c_5601-1987">
+
+		<TITLE>관리보고서 파일다운로드</TITLE>
+
+		<SCRIPT FOR="FileDownloadMonitor" Event="OnError(nCode, sMsg, sDetailMsg)" Language="javascript">
+			OnErrorDownloadMonitor(nCode, sMsg, sDetailMsg);
+		</SCRIPT>
+		<SCRIPT LANGUAGE="JavaScript">
+			function OnErrorDownloadMonitor(nCode, sMsg, sDetailMsg)
+			{
+				alert(nCode);
+				alert(sMsg);
+				alert(sDetailMsg);
+			}
+		</SCRIPT>
+		<SCRIPT LANGUAGE="VBS" for="FileDownloadMonitor" event="OnCloseWIndow()">
+			//opener.location.href="about:blank"
+		</SCRIPT>
+
+
+		<SCRIPT LANGUAGE="VBS">
+			sub OnLoading()
+				' 파일 다운로드 매니저가 넘겨주는 아이템들을 저장한다
+				document.all("FileDownloadMonitor").Items = opener.document.all("FileDownloadManager").Items
+				document.all("FileDownloadMonitor").CheckDownloadFolder = TRUE
+
+				' 파일 이어받기 기능을 설정한다
+				document.all("FileDownloadMonitor").EnableResume = TRUE  '이어받기 체크박스의 활성화 상태를 결정한다.
+				document.all("FileDownloadMonitor").VisibleResume = TRUE  '이어받기 체크박스의 가시화 상태를 결정한다.
+				document.all("FileDownloadMonitor").CheckResume = TRUE  '이어받기 체크박스의 체크 상태를 결정한다
+				document.all("FileDownloadMonitor").CheckOverwrite = TRUE
+				document.all("FileDownloadMonitor").CheckAutoCloseWindow = TRUE
+			end sub
+		</SCRIPT>
+	</HEAD>
+
+	<BODY onload="OnLoading()" bottomMargin=0 leftMargin=0 topMargin=0 rightMargin=0>
+		<OBJECT ID="FileDownloadMonitor"  height=445 width=445
+		CodeBase = "http://mms.raed.co.kr/DEXTUploadX/DEXTUploadX.cab#version=2,8,2,0"
+		CLASSID="CLSID:471678BB-F992-4BE6-9761-7767883E8619">
+		<PARAM NAME="ListViewStyle" VALUE="LVS_REPORT">
+		<PARAM NAME="VisibleDownloadCheckbox" VALUE="FALSE">
+
+		</OBJECT>
+	</BODY>
+</HTML>

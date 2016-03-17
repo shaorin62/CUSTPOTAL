@@ -1,0 +1,75 @@
+<!--#Include virtual="/inc/getdbcon.asp"-->
+<!--#Include virtual="/inc/func.asp"-->
+<!--#include virtual="/inc/secure.inc.asp"-->	<% '보안관련라이브러리 %>
+<!--#include virtual="/inc/head.asp"-->			<% '초기 설정 페이지(에러 메세지 미출력) %>
+<%
+	dim uploadform : set uploadform = server.createobject("DEXT.FileUpload")
+	uploadform.defaultPath ="C:\pds\file"
+
+
+	dim midx : midx = uploadform("midx")
+	dim title : title = uploadform("txttitle")
+	dim content : content = uploadform("txtcontents")
+	dim mail : mail = uploadform("txtmail")
+	dim tomail : tomail = uploadform("txttomail")
+	dim attachfile : attachfile = uploadform("txtfile")
+	dim attachfile2 : attachfile = uploadform("txtfile2")
+	dim attachfile3 : attachfile = uploadform("txtfile3")
+	dim userid : userid = uploadform("userid")
+	dim password : password = uploadform("txtpassword")
+	dim filename
+	dim intloop
+	dim ridx
+	Dim atag
+
+	if trim(mail) = "" then mail = null
+	if trim(tomail) = "" then tomail = null
+	if trim(password) = "" then password = null
+
+	dim objrs, sql
+	sql = "select ridx, title, contents, mail, tomail, midx, password, cuser, cdate, uuser, udate from dbo.wb_report where midx ="&midx
+	call set_recordset(objrs, sql)
+
+	objrs.addnew
+	objrs.fields("title").value = clearXSS( title, atag)
+	objrs.fields("contents").value = clearXSS( replace(content, "'", "''"), atag)
+	objrs.fields("mail").value = clearXSS( mail, atag)
+	objrs.fields("tomail").value = clearXSS( tomail, atag)
+	objrs.fields("midx").value = midx
+	objrs.fields("password").value = password
+	objrs.fields("cuser").value = userid
+	objrs.fields("cdate").value = date
+	objrs.fields("uuser").value = userid
+	objrs.fields("udate").value = date
+	objrs.update
+
+	ridx = objrs("ridx")
+
+	objrs.close
+	sql = "select ridx, attachfile from dbo.wb_Report_pds where ridx = " & ridx
+	call set_recordset(objrs, sql)
+
+	for intLoop = 1 to uploadform("txtfile").count
+		if uploadform("txtfile")(intLoop) <> "" then
+				objrs.addnew
+				objrs("ridx") = ridx
+				filename = uploadform("txtfile")(intLoop).Save(, false)
+				objrs.fields("attachfile").value = replace(filename, uploadform.defaultPath&"\", "")
+				objrs.update
+		end if
+	next
+
+	if not isnull(tomail) then
+		call getSendMail(mail, tomail, title, content)
+	end if
+
+	objrs.close
+	Set objrs = Nothing
+
+%>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+	window.opener.scriptFrame.location.href="list.asp?midx=<%=midx%>";
+	this.close();
+//-->
+</SCRIPT>

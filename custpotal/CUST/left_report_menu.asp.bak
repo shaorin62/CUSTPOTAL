@@ -1,0 +1,165 @@
+<table width="210" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><img src="/images/menu_report_sub_title.gif" width="210" height="75"></td>
+  </tr>
+  <%
+	sql = "select midx, title, lvl from dbo.wb_menu_mst where custcode is null and mp = 0 order by ref, lvl"
+	call get_recordset(objrs, sql)
+
+	if not objrs.eof then
+		do until objrs.eof
+			if objrs("lvl") = 1 then
+%>
+	<tr>
+		<td  width='210'  height='20' class="deps" background="/images/menu_bg.gif" id="<%=objrs("midx")%>"  onclick="get_page(<%=objrs("midx")%>,'<%=objrs("title")%>','<%=objrs("midx")%>')" style="cursor:hand"><%=objrs("title")%> </td>
+	</tr>
+<% else %>
+
+	<tr>
+		<td  width='210'  height='20' class="deps_1" background="/images/menu_bg.gif" id="<%=objrs("midx")%>"  onclick="get_page(<%=objrs("midx")%>,'<%=objrs("title")%>','<%=objrs("midx")%>')" style="cursor:hand">&nbsp;&nbsp;&nbsp;&nbsp;<%=objrs("title")%> </td>
+	</tr>
+
+<%
+		end if
+		objrs.movenext
+		loop
+	end if
+
+	dim objrs2, objrs3, objrs4
+	sql = "select c2.custcode, c2.custname from dbo.wb_menu_mst m inner join dbo.sc_cust_temp c on m.custcode = c.custcode inner join dbo.sc_cust_temp c2 on c2.custcode = c.highcustcode where m.custcode = '" & request.cookies("custcode") & "' group by c2.custcode, c2.custname"
+
+	call get_recordset(objrs, sql)
+	do until objrs.Eof
+%>
+	<tr>
+		<td  width='210'  height='25' class="deps" background="/images/menu_bg_over.gif"  onclick="checkDisplay('<%=objrs("custcode")%>');" style="cursor:hand;" ><%=objrs("custname")%></td>
+	</tr>
+	<tr id="<%=objrs("custcode")%>" style="display:block" >
+		<td  width='210'  height='0'  background="/images/menu_bg.gif" >
+			<%
+				sql = "select midx, title, lvl from dbo.wb_menu_mst where custcode = '" & objrs("custcode") &"' order by ref , lvl"
+				call get_recordset(objrs2, sql)
+			%>
+			<table  border="0" cellspacing="0" cellpadding="0">
+			<%
+				do until objrs2.eof
+					If objrs2("lvl") = 1 Then 
+			%>
+				<tr>
+					<td   height='19' class="deps_1" background="/images/menu_bg.gif" id="<%=objrs2("midx")%>" onclick="get_page(<%=objrs2("midx")%>, '<%=objrs2("title")%>','<%=objrs2("midx")%>');" style="cursor:hand;"><%=objrs2("title")%></td>
+				</tr>
+				<% Else %>
+				<tr>
+					<td   height='19' class="deps_1" background="/images/menu_bg.gif" id="<%=objrs2("midx")%>" onclick="get_page(<%=objrs2("midx")%>, '<%=objrs2("title")%>','<%=objrs2("midx")%>');" style="cursor:hand;">&nbsp;&nbsp;&nbsp;&nbsp;<%=objrs2("title")%></td>
+				</tr>
+				<%
+					End If 
+					objrs2.movenext
+					Loop
+					objrs2.close
+			%>
+			</table>
+			<%
+				if request.cookies("class") = "D" then
+					sql = "select c.custcode, c.custname from dbo.sc_cust_temp c inner join dbo.wb_menu_mst m on m.custcode = c.custcode and c.highcustcode <> c.custcode where c.custcode = '" & request.cookies("custcode2") & "' group by c.custcode, c.custname"
+				else
+					sql = "select c.custcode, c.custname from dbo.sc_cust_temp c inner join dbo.wb_menu_mst m on m.custcode = c.custcode and c.highcustcode <> c.custcode where c.highcustcode = '" & objrs("custcode") & "' group by c.custcode, c.custname"
+				end if
+				call get_recordset(objrs3, sql)
+
+				if not objrs3.eof then
+			%>
+			<table  border="0" cellspacing="0" cellpadding="0">
+			<%
+				do until objrs3.eof
+			%>
+				<tr>
+					<td   height='19' class="deps_1" background="/images/menu_bg_over.gif" ><%=objrs3("custname")%></td>
+				</tr>
+				<%
+						sql = "Select  midx, title, lvl,  highmenu from dbo.wb_menu_mst where custcode = '" & objrs3("custcode") &"' order by ref , lvl"
+						call get_recordset(objrs4, sql)
+						do until objrs4.eof
+						if objrs4("highmenu")  then
+				%>
+				<tr>
+					<td   height='19' class="deps_3" background="/images/menu_bg_over.gif" ><%=objrs4("title")%></td>
+				</tr>
+				<% else %>
+					<% if objrs4("lvl") = 1 then %>
+				<tr>
+					<td   height='19' class="deps_3" background="/images/menu_bg.gif"  id="<%=objrs4("midx")%>"  onclick="get_page(<%=objrs4("midx")%>,'<%=objrs4("title")%>','<%=objrs4("midx")%>')" style="cursor:hand"><%=objrs4("title")%></td>
+				</tr>
+					<% else %>
+				<tr>
+					<td   height='19' class="deps_3" background="/images/menu_bg.gif" id="<%=objrs4("midx")%>"  onclick="get_page(<%=objrs4("midx")%>,'<%=objrs4("title")%>','<%=objrs4("midx")%>')" style="cursor:hand">&nbsp;&nbsp;&nbsp;&nbsp;<%=objrs4("title")%></td>
+				</tr>
+					<% end if%>
+				<%
+							end if
+						objrs4.movenext
+						Loop
+						objrs4.close
+
+					objrs3.movenext
+					Loop
+					objrs3.close
+			%>
+			</table>
+			<%	end if %>
+		</td>
+	</tr>
+<%
+	' 광고주 목록 돌리기
+	objrs.moveNext
+	loop
+%>
+  <tr>
+    <td><img src="/images/menu_sub_bottom.gif" width="210" height="30"></td>
+  </tr>
+</table>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+
+	function get_page(idx, str, p) {
+		var td = document.getElementsByTagName("td")
+		for (var i = 0 ; i < td.length ; i++) {
+			if (!td[i].getAttribute("id")) continue;
+			if (td[i].className == "depsover") td[i].className = "deps" ;
+			if (td[i].className == "depsover_3") td[i].className = "deps_3" ;
+			if (td[i].className == "depsover_1") td[i].className = "deps_1" ;
+			if (td[i].className == "deps_3" || td[i].className == "deps_1" || td[i].className == "deps") {
+				if (td[i].getAttribute("id") == p) {
+					if (td[i].className == "deps") td[i].className = "depsover" ;
+					if (td[i].className == "deps_3") td[i].className = "depsover_3" ;
+					if (td[i].className == "deps_1") td[i].className = "depsover_1" ;
+				}
+			}
+		}
+		var subtitle = document.getElementById("subtitle") ;
+		subtitle.innerText = str ;
+		var navigate = document.getElementById("navigate");
+		navigate.innerText = "매체별 리포트 > " + str ;
+		document.getElementById("midx").value = idx ;
+		scriptFrame.location.href= "list.asp?midx="+idx;
+	}
+
+	function checkDisplay(code) {
+		document.getElementById(code).style.display = "block";
+	}
+
+	window.onload = function () {
+		var td = document.getElementsByTagName("td")
+		for (var i = 0 ; i < td.length ; i++) {
+			if (!td[i].getAttribute("id")) continue;
+			if (td[i].className == "deps") {
+				td[i].className = "depsover" ;
+				document.getElementById("midx").value = td[i].getAttribute("id") ;
+				document.getElementById("scriptFrame").setAttribute("src", "list.asp");
+				return false;
+			}
+		}
+	}
+//-->
+</SCRIPT>
+

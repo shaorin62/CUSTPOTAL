@@ -1,0 +1,110 @@
+<!--METADATA TYPE="typelib"  NAME="ADODB Type Library      UUID= "00000205-0000-0010-8000-00AA006D2EA4" -->
+<script language=vbscript runat=server>
+sub application_onstart()
+	application("connectionstring") = "Provider=SQLOLEDB;Data Source=10.110.10.86; Initial Catalog=MCDEV_NEW; User Id =devadmin; Password=password;"
+	'application("connectionstring") = "Provider=SQLOLEDB;Data Source=10.110.10.88\MCRMSDB; Initial Catalog=MCDEV_NEW; User Id =advsa; Password=advsa1234;"
+	getSide()
+	getQuality()
+	getUnit()
+	getRegion()
+
+
+end sub
+
+function getRegion()
+	dim region
+	region = application("region")
+	if region = "" then
+		region = fetchRegion()
+		application("region") = region
+	end if
+getRegion = region
+end function
+function fetchRegion()
+	dim region(20)
+	region(0) = "서울"
+	region(1) = "경기"
+	region(2) = "인천"
+	region(3) = "강원"
+	region(4) = "충남"
+	region(5) = "대전"
+	region(6) = "충북"
+	region(7) = "부산"
+	region(8) = "울산"
+	region(9) = "대구"
+	region(10) = "경북"
+	region(11) = "경남"
+	region(12) = "전남"
+	region(13) = "광주"
+	region(14) = "전북"
+	region(15) = "제주"
+	region(16) = "고속도로"
+	region(17) = "공항"
+	region(18) = "KTX"
+	region(19) = "전국"
+	region(20) = "기타"
+	fetchRegion = region
+end function
+
+function getSide()
+	dim side
+	side = application("side")
+	if side = "" then
+		side = fetchSide()
+		application("side") = side
+	end if
+	getSide = side
+end function
+function fetchSide()
+	dim side(3)
+		side(0) = "L"
+		side(1) = "R"
+		side(2) = "F"
+		side(3) = "B"
+		fetchSide = side
+end function
+function getQuality()
+	dim d
+	d = application("quality")
+	if d = "" then
+		d = fetchQuality()
+		application("quality") = d
+	end if
+getQuality = d
+end function
+function fetchQuality()
+	dim quality(12)
+	quality(0) = "LED"
+	quality(1) = "LCD"
+	quality(2) = "PDP"
+	quality(3) = "내부조명(시트)"
+	quality(4) = "내부조명(실사)"
+	quality(5) = "네온(단순)"
+	quality(6) = "네온(알파)"
+	quality(7) = "네온(점멸)"
+	quality(8) = "비조명(시트)"
+	quality(9) = "비조명(실사)"
+	quality(10) = "비조명(화공)"
+	quality(11) = "외부조명(시트)"
+	quality(12) = "외부조명(실사)"
+	fetchQuality = quality
+end function
+function getUnit()
+	dim unit
+	unit = application("unitl")
+	if unit = "" then
+		unit = fetchUnit()
+		application("unit") = unit
+	end if
+	getUnit = unit
+end function
+function fetchUnit()
+	dim unit(4)
+		unit(0) = "구좌"
+		unit(1) = "면"
+		unit(2) = "기"
+		unit(3) = "inch"
+		unit(4) = "m"
+		fetchUnit = unit
+end function
+</script>

@@ -1,0 +1,279 @@
+<!--#include virtual="/inc/getdbcon.asp" -->
+<!--#include virtual="/inc/func.asp" -->
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<link href="/style.css" rel="stylesheet" type="text/css">
+<body oncontextmenu='return false' >
+<%
+	dim cyear, cyear2, cmonth, cmonth2, yearmon, yearmon2
+	cyear = request("cyear")											' 시작년도
+	if cyear = "" then cyear = year(date)							' 시작년도가 없으면 현재 년도를 기본 년도로 세팅
+	cmonth = request("cmonth")									' 시작월
+	if cmonth = "" then cmonth = month(date)				' 시작월이 없으면 현재 월을 기본 월로 세팅
+	If Len(cmonth) = 1 Then cmonth = "0"&cmonth			' 시작월이 1자리면 0을 붙여서 2자리 월로 변경
+	cyear2 = request("cyear2")										' 종료년도
+	if cyear2 = "" then cyear2 = year(date)						' 종료년도 기본 세팅
+	cmonth2 = request("cmonth2")								' 종료월
+	if cmonth2 = "" then cmonth2 = month(date)			' 종료월 기본 세팅
+	If Len(cmonth2) = 1 Then cmonth2 = "0"&cmonth2	' 종료 자리수 세팅
+
+	yearmon = cyear & cmonth										' 시작년월 세팅
+	yearmon2 = cyear2 & cmonth2									' 종료년월 세팅
+
+	Dim custcode : custcode = request("tcustcode")			'광고주 코드
+	Dim custcode2 : custcode2 = request("tcustcode2")		'사업부 코드				'사업코드를 받지 못하면 null 로 세팅
+
+	dim objrs, sql
+	' 선택된 광고주에 해당하는 사업부서 쿼리
+	sql = "select custcode, custname from dbo.sc_cust_temp where highcustcode = '" & custcode & "' order by custcode"
+	call get_recordset(objrs, sql)
+
+	dim str
+	' 해당 사업부를 콤보박스로 세팅
+	str = "<select name='tcustcode2'>"
+	do until objrs.eof
+		str = str & "<option value='" & objrs("custcode") & "'"
+			if custcode2 = objrs("custcode") then str = str & " selected"				'선택된 사업부가 동일하면 사업부를 고정시킨다.
+		str = str & ">" & objrs("custname") & "</option>"
+		objrs.movenext
+	Loop
+	str = str & "</select>"
+	objrs.close
+
+	if custcode2 = "" or custcode = custcode2 then custcode2 = null
+
+	if request.cookies("class") = "D" then
+		custcode2 = request.cookies("custcode2")
+	end if
+
+	if isnull(custcode2) then
+	sql = "select c.custname, j.seqname, c2.custname as custname4, case when m.medflag = '01' then 'TV' 		when m.medflag in ('02','03') then 'Radio' 		end as medflag,isnull(sum(case when m.real_med_code = 'B00140' then isnull(amt,0) else 0 end ),0) as 'A01',isnull(sum(case when m.real_med_code = 'B00141' then isnull(amt,0) else 0 end ),0) as 'A02',isnull(sum(case when m.real_med_code = 'B00142' then isnull(amt,0) else 0 end ),0) as 'A03',isnull(sum(case when m.real_med_code = 'B00143' then isnull(amt,0) else 0 end ),0) as 'A04',isnull(sum(case when m.real_med_code = 'B00144' then isnull(amt,0) else 0 end ),0) as 'A05',isnull(sum(case when m.real_med_code = 'B00145' then isnull(amt,0) else 0 end ),0) as 'A06',isnull(sum(amt),0) as 'TOTAL'	,isnull(sum(amt*1.1),0) as 'VAT_TOTAL'	 from dbo.md_report_mst m inner join dbo.sc_cust_temp c on m.clientsubcode = c.custcode left outer join dbo.sc_jobcust j on j.seqno = m.subseq left outer join dbo.sc_cust_temp c2 on c2.custcode = m.exclientcode where m.medflag in ('01', '02', '03') and m.yearmon = '"&yearmon&"' and m.clientcode = '"&custcode&"' and m.amt <> 0 group by c.custname, j.seqname, c2.custname, case when m.medflag = '01' then 'TV' when m.medflag in ('02','03') then 'Radio' end with cube having c.custname is not null or (c.custname is null and seqname is null and c2.custname is null)  order by c.custname desc, seqname desc, custname4 desc, medflag desc"
+
+	'response.write sql
+
+	call get_recordset(objrs, sql)
+
+	Dim custname, seqname,custname4,  medflag,  A01, A02, A03, A04, A05, A06, total, vat_total,  prev_seqname, prev_custname, prev_customer_total, customer_total, prev_custname4, str_total, prev_total, prev_seqname_total, seqname_total
+	If Not objrs.eof Then
+		Set custname = objrs("custname")
+		Set seqname = objrs("seqname")
+		Set custname4 = objrs("custname4")
+		Set medflag = objrs("medflag")
+		Set A01 = objrs("A01")
+		Set A02 = objrs("A02")
+		Set A03 = objrs("A03")
+		Set A04 = objrs("A04")
+		Set A05 = objrs("A05")
+		Set A06 = objrs("A06")
+		Set total = objrs("total")
+		Set vat_total = objrs("vat_total")
+	End if
+
+%>
+				  <table width="1300" border="0" cellspacing="1" cellpadding="0" bgcolor="#CCCCCC" >
+                      <tr class="trhd">
+                        <td width="100" align="center">구분</td>
+                        <td width="120" align="center">브랜드</td>
+                        <td width="150" align="center"> Creative <br> agency </td>
+                        <td width="70" align="center" >구분</td>
+                        <td width="100" align="center">본사</td>
+                        <td width="100" align="center">부산</td>
+                        <td width="100" align="center">대구</td>
+                        <td width="100" align="center">광주</td>
+                        <td width="100" align="center">대전</td>
+                        <td width="100" align="center">전북</td>
+                        <td width="100" align="center">합계</td>
+                        <td width="100" align="center">(VAT포함)</td>
+                      </tr>
+				<!--  custname, seqname,custname4,  medflag,  A01, A02, A03, A04, A05, A06, total, vat_total,  prev_seqname, prev_medflag -->
+				<% do until objrs.eof 	%>
+				<% If Not (Not IsNull(custname) And IsNull(seqname) And Not IsNull(custname4)) then%>
+				<% If Not IsNull(custname) And Not IsNull(seqname) And Not IsNull(custname4) And IsNull(medflag) then%>
+                      <tr class="trbd" bgcolor="#FFFFFF" >
+                        <td align="left" >&nbsp;&nbsp;<%If prev_custname <> custname Then response.write custname %> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_seqname <> seqname Then response.write seqname%> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_custname4 <> custname4 Then response.write custname4 %></td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% ElseIf Not IsNull(custname) And Not IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag) Then
+					seqname_total = seqname & " TOTAL"%>
+                      <tr class="trbd" bgcolor="#CCFFFF" ><!-- 브랜드 합 -->
+                        <td align="left" >&nbsp;&nbsp;<%If prev_custname <> custname Then response.write custname %> </td>
+                        <td align="left" colspan="2">&nbsp;&nbsp;<% If seqname_total <> prev_seqname_total Then response.write seqname_total %></td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% ElseIf Not IsNull(custname) And Not IsNull(seqname) And IsNull(custname4) And IsNull(medflag) then
+					seqname_total = seqname & " TOTAL"%>
+                      <tr class="trbd" bgcolor="#CCFFFF" ><!-- 브랜드 부분합 -->
+                        <td align="left" >&nbsp;&nbsp;<%If prev_custname <> custname Then response.write custname %> </td>
+                        <td align="left" colspan="2">&nbsp;&nbsp;<% If seqname_total <> prev_seqname_total Then response.write seqname_total %> </td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% ElseIf Not IsNull(custname) And IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag) then
+						customer_total = custname&" TOTAL" %>
+                      <tr class="trbd" bgcolor="#FFFFC1" > <!-- 사업부 TV, Radio  합-->
+
+                        <td align="left" colspan="3">&nbsp;&nbsp;<%If customer_total <> prev_customer_total Then response.write customer_total%> </td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% ElseIf Not IsNull(custname) And IsNull(seqname) And IsNull(custname4) And  IsNull(medflag) then
+						customer_total = custname&" TOTAL"%>
+                      <tr class="trbd" bgcolor="#FFFFC1" > <!-- 사업부 TV, Radio .부분합 -->
+                        <td align="left" colspan="3">&nbsp;&nbsp;<%If customer_total <> prev_customer_total Then response.write customer_total %></td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% ElseIf  IsNull(custname) And IsNull(seqname) And IsNull(custname4) And Not  IsNull(medflag) Then
+					str_total = "TOTAL"%>
+                      <tr class="trbd" bgcolor="#FFC1C1" >
+                        <td  align="center" colspan="3">&nbsp;&nbsp;<%If prev_total <> str_total Then response.write str_total%>  </td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% ElseIf  IsNull(custname) And IsNull(seqname) And IsNull(custname4) And  IsNull(medflag) Then
+					str_total = "TOTAL"%>
+                      <tr class="trbd" bgcolor="#FFC1C1" >
+                        <td  align="center" colspan="3">&nbsp;&nbsp;<%If prev_total <> str_total Then response.write str_total%> </td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% Else %>
+                      <tr class="trbd" bgcolor="#FFFFFF" >
+                        <td align="left" >&nbsp;&nbsp;<%If prev_custname <> custname Then response.write custname %> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_seqname <> seqname Then response.write seqname%> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_custname4 <> custname4 Then response.write custname4 %></td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% End if%>
+                        <td align="right"><% If A01 = "0" Then response.write "-" Else response.write FormatNumber(A01,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A02 = "0" Then response.write "-" Else response.write FormatNumber(A02,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A03 = "0" Then response.write "-" Else response.write FormatNumber(A03,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A04 = "0" Then response.write "-" Else response.write FormatNumber(A04,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A05 = "0" Then response.write "-" Else response.write FormatNumber(A05,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A06 = "0" Then response.write "-" Else response.write FormatNumber(A06,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If total = "0" Then response.write "-" Else response.write FormatNumber(total,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If vat_total = "0" Then response.write "-" Else response.write FormatNumber(vat_total,0)%>&nbsp;&nbsp;</td>
+				<%
+							If  (Not IsNull(custname) And IsNull(seqname) And IsNull(custname4) And  IsNull(medflag)) Or (Not IsNull(custname) And IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag) ) Then
+								prev_seqname = ""
+								prev_customer_total = customer_total
+								prev_seqname_total = seqname_total
+							ElseIf (Not IsNull(custname) And Not IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag)) Or (Not IsNull(custname) And Not IsNull(seqname) And IsNull(custname4) And IsNull(medflag) ) Then
+								prev_custname4 = ""
+								prev_seqname_total = seqname_total
+							Else
+								prev_customer_total = customer_total
+								prev_custname = custname
+								prev_seqname = seqname
+								prev_custname4 = custname4
+								prev_total = str_total
+							End if
+						End if
+						objrs.movenext
+					loop
+					objrs.close
+					set objrs = nothing
+				%>
+              </table>
+<% else
+
+	sql = "select c.custname, j.seqname, c2.custname as custname4, case when m.medflag = '01' then 'TV' 		when m.medflag in ('02','03') then 'Radio' 		end as medflag,isnull(sum(case when m.real_med_code = 'B00140' then isnull(amt,0) else 0 end ),0) as 'A01',isnull(sum(case when m.real_med_code = 'B00141' then isnull(amt,0) else 0 end ),0) as 'A02',isnull(sum(case when m.real_med_code = 'B00142' then isnull(amt,0) else 0 end ),0) as 'A03',isnull(sum(case when m.real_med_code = 'B00143' then isnull(amt,0) else 0 end ),0) as 'A04',isnull(sum(case when m.real_med_code = 'B00144' then isnull(amt,0) else 0 end ),0) as 'A05',isnull(sum(case when m.real_med_code = 'B00145' then isnull(amt,0) else 0 end ),0) as 'A06',isnull(sum(amt),0) as 'TOTAL'	,isnull(sum(amt*1.1),0) as 'VAT_TOTAL'	 from dbo.md_report_mst m inner join dbo.sc_cust_temp c on m.clientsubcode = c.custcode left outer join dbo.sc_jobcust j on j.seqno = m.subseq left outer join dbo.sc_cust_temp c2 on c2.custcode = m.exclientcode where m.medflag in ('01', '02', '03') and m.yearmon = '"&yearmon&"' and m.clientcode = '"&custcode&"' and m.clientsubcode like '"& custcode2 &"%' and  m.amt <> 0 group by c.custname, j.seqname, c2.custname, case when m.medflag = '01' then 'TV' when m.medflag in ('02','03') then 'Radio' end with cube having c.custname is not null or (c.custname is not null and seqname is null and c2.custname is null)  order by c.custname desc, seqname desc, custname4 desc, medflag desc"
+
+	call get_recordset(objrs, sql)
+
+	If Not objrs.eof Then
+		Set custname = objrs("custname")
+		Set seqname = objrs("seqname")
+		Set custname4 = objrs("custname4")
+		Set medflag = objrs("medflag")
+		Set A01 = objrs("A01")
+		Set A02 = objrs("A02")
+		Set A03 = objrs("A03")
+		Set A04 = objrs("A04")
+		Set A05 = objrs("A05")
+		Set A06 = objrs("A06")
+		Set total = objrs("total")
+		Set vat_total = objrs("vat_total")
+	End if
+
+%>
+				  <table width="1200" border="0" cellspacing="1" cellpadding="0" bgcolor="#CCCCCC" >
+                      <tr class="trhd">
+                        <td width="120" align="center">브랜드</td>
+                        <td width="150" align="center"> Creative <br> agency </td>
+                        <td width="70" align="center" >구분</td>
+                        <td width="100" align="center">분사</td>
+                        <td width="100" align="center">부산</td>
+                        <td width="100" align="center">대구</td>
+                        <td width="100" align="center">광주</td>
+                        <td width="100" align="center">대전</td>
+                        <td width="100" align="center">전북</td>
+                        <td width="100" align="center">합계</td>
+                        <td width="100" align="center">(VAT포함)</td>
+                      </tr>
+				<!--  custname, seqname,custname4,  medflag,  A01, A02, A03, A04, A05, A06, total, vat_total,  prev_seqname, prev_medflag -->
+				<% do until objrs.eof 	%>
+				<% If Not (IsNull(seqname) And Not IsNull(custname4)) then%>
+				<% If Not Not IsNull(seqname) And Not IsNull(custname4) And IsNull(medflag) then%>
+                      <tr class="trbd" bgcolor="#FFFFFF" >
+                        <td align="left">&nbsp;&nbsp;<%If prev_seqname <> seqname Then response.write seqname%> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_custname4 <> custname4 Then response.write custname4 %></td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% ElseIf Not IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag) Then
+					seqname_total = seqname & " TOTAL"%>
+                      <tr class="trbd" bgcolor="#CCFFFF" >
+                        <td align="left" colspan="2">&nbsp;&nbsp;<% If seqname_total <> prev_seqname_total Then response.write seqname_total %></td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% ElseIf  Not IsNull(seqname) And IsNull(custname4) And IsNull(medflag) then
+					seqname_total = seqname & " TOTAL"%>
+                      <tr class="trbd" bgcolor="#CCFFFF" >
+                        <td align="left" colspan="2">&nbsp;&nbsp;<% If seqname_total <> prev_seqname_total Then response.write seqname_total %></td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% ElseIf   IsNull(seqname) And IsNull(custname4) And Not  IsNull(medflag) Then
+					str_total = "TOTAL"%>
+                      <tr class="trbd" bgcolor="#FFC1C1" >
+                        <td  align="center" colspan="2">&nbsp;&nbsp;<%If prev_total <> str_total Then response.write str_total%>  </td>
+                        <td align="left">&nbsp;&nbsp;<%=medflag%></td>
+				<% ElseIf  IsNull(seqname) And IsNull(custname4) And  IsNull(medflag) Then
+					str_total = "TOTAL"%>
+                      <tr class="trbd" bgcolor="#FFC1C1" >
+                        <td  align="center" colspan="2">&nbsp;&nbsp;<%If prev_total <> str_total Then response.write str_total%> </td>
+                        <td align="left">&nbsp;&nbsp;부분합</td>
+				<% Else%>
+                      <tr class="trbd" bgcolor="#FFFFFF" >
+                        <td align="left">&nbsp;&nbsp;<%If prev_seqname <> seqname Then response.write seqname%> </td>
+                        <td align="left">&nbsp;&nbsp;<%If prev_custname4 <> custname4 Then response.write custname4 %></td>
+                        <td align="left">&nbsp;&nbsp; <%=medflag%></td>
+				<% End if%>
+                        <td align="right"><% If A01 = "0" Then response.write "-" Else response.write FormatNumber(A01,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A02 = "0" Then response.write "-" Else response.write FormatNumber(A02,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A03 = "0" Then response.write "-" Else response.write FormatNumber(A03,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A04 = "0" Then response.write "-" Else response.write FormatNumber(A04,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A05 = "0" Then response.write "-" Else response.write FormatNumber(A05,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If A06 = "0" Then response.write "-" Else response.write FormatNumber(A06,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If total = "0" Then response.write "-" Else response.write FormatNumber(total,0)%>&nbsp;&nbsp;</td>
+                        <td align="right"><% If vat_total = "0" Then response.write "-" Else response.write FormatNumber(vat_total,0)%>&nbsp;&nbsp;</td>
+					</tr>
+				<%
+							If  (IsNull(seqname) And IsNull(custname4) And  IsNull(medflag)) Or (IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag) ) Then
+								prev_seqname = ""
+								prev_customer_total = customer_total
+								prev_seqname_total = seqname_total
+							ElseIf (Not IsNull(seqname) And IsNull(custname4) And Not IsNull(medflag)) Or (Not IsNull(seqname) And IsNull(custname4) And IsNull(medflag) ) Then
+								prev_custname4 = ""
+								prev_seqname_total = seqname_total
+							Else
+								prev_customer_total = customer_total
+								prev_custname = custname
+								prev_seqname = seqname
+								prev_custname4 = custname4
+								prev_total = str_total
+							End if
+						End if
+						objrs.movenext
+					loop
+					objrs.close
+					set objrs = nothing
+				%>
+              </table>
+
+<% end if%>
+
+</body>
+<% if request.cookies("class") = "C" then %>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+	var custcode2 = parent.document.getElementById("custcode2") ;
+	custcode2.innerHTML = "<%=str%>";
+//-->
+</SCRIPT>
+<% end if%>
+
